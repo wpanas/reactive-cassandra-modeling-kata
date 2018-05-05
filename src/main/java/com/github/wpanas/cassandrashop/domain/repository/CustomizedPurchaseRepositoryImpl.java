@@ -19,6 +19,12 @@ public class CustomizedPurchaseRepositoryImpl implements CustomizedPurchaseRepos
     private static final String ID = "id";
     private static final String MASTER_PURCHASE_TABLE = "master_purchase";
     private static final String STATUS = "status";
+    private static final String USER_PURCHASE_TABLE = "user_purchase";
+    private static final String USER_ID = "userId";
+    private static final String PURCHASE_ID = "purchaseId";
+    private static final String ITEM_ID = "itemId";
+    private static final String UNIT_PRICE = "unitPrice";
+    private static final String QUANTITY = "quantity";
     private final ReactiveCassandraOperations reactiveCassandraOperations;
 
     public CustomizedPurchaseRepositoryImpl(ReactiveCassandraOperations reactiveCassandraOperations) {
@@ -36,11 +42,21 @@ public class CustomizedPurchaseRepositoryImpl implements CustomizedPurchaseRepos
         Batch batchStatement = batch();
 
         batchStatement.add(purchaseStatusUpdate());
+        batchStatement.add(userPurchaseInsert());
 
         return reactiveCassandraOperations.getReactiveCqlOperations()
                 .execute(batchStatement.toString(), preparedStatement -> {
-                    return preparedStatement.bind(purchase.getStatus().name(), purchase.getId());
+                    return preparedStatement.bind(purchase.getStatus().name(), purchase.getId(), purchase.getUserId(), purchase.getId(), purchase.getItemId(), purchase.getUnitPrice(), purchase.getQuantity());
                 });
+    }
+
+    private RegularStatement userPurchaseInsert() {
+        return insertInto(USER_PURCHASE_TABLE)
+                .value(USER_ID, bindMarker())
+                .value(PURCHASE_ID, bindMarker())
+                .value(ITEM_ID, bindMarker())
+                .value(UNIT_PRICE, bindMarker())
+                .value(QUANTITY, bindMarker());
     }
 
     private RegularStatement purchaseStatusUpdate() {

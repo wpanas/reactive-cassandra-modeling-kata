@@ -4,6 +4,7 @@ import com.github.wpanas.cassandrashop.CassandraIntegrationTest;
 import com.github.wpanas.cassandrashop.domain.model.Item;
 import com.github.wpanas.cassandrashop.domain.model.Purchase;
 import com.github.wpanas.cassandrashop.domain.model.PurchaseStatus;
+import com.github.wpanas.cassandrashop.domain.model.UserPurchaseKey;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class CustomizedPurchaseRepositoryImplTest {
     @Autowired
     private ItemRepository itemRepository;
 
+    @Autowired
+    private UserPurchaseRepository userPurchaseRepository;
+
     @Test
     public void savePurchase() {
         int ttl = 24;
@@ -57,23 +61,35 @@ public class CustomizedPurchaseRepositoryImplTest {
 
     @Test
     public void updatePurchase() {
-        UUID id = UUID.randomUUID();
+        UUID purchaseId = UUID.randomUUID();
         UUID itemId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         BigDecimal unitPrice = BigDecimal.ONE;
         Integer quantity = 1;
-        Purchase purchase = new Purchase(id, itemId, userId, unitPrice, quantity, PurchaseStatus.COMPLETED);
+        Purchase purchase = new Purchase(purchaseId, itemId, userId, unitPrice, quantity, PurchaseStatus.COMPLETED);
 
         StepVerifier.create(purchaseRepository.updatePurchase(purchase))
                 .expectSubscription()
                 .consumeNextWith(updated -> assertThat(updated, is(true)))
                 .verifyComplete();
 
-        StepVerifier.create(purchaseRepository.findById(id))
+        StepVerifier.create(purchaseRepository.findById(purchaseId))
                 .expectSubscription()
                 .consumeNextWith(purchase1 -> {
-                    assertThat(purchase.getId(), is(id));
+                    assertThat(purchase.getId(), is(purchaseId));
                     assertThat(purchase.getStatus(), is(PurchaseStatus.COMPLETED));
+                })
+                .verifyComplete();
+
+
+        final UserPurchaseKey userPurchaseKey = new UserPurchaseKey(userId, purchaseId);
+        StepVerifier.create(userPurchaseRepository.findById(userPurchaseKey))
+                .expectSubscription()
+                .consumeNextWith(userPurchase -> {
+                    assertThat(userPurchase.getId(), is(userPurchaseKey));
+                    assertThat(userPurchase.getItemId(), is(itemId));
+                    assertThat(userPurchase.getQuantity(), is(purchase.getQuantity()));
+                    assertThat(userPurchase.getUnitPrice(), is(purchase.getUnitPrice()));
                 })
                 .verifyComplete();
     }
