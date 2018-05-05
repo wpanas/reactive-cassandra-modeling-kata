@@ -6,6 +6,7 @@ import org.springframework.data.cassandra.core.mapping.Table;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Set;
 import java.util.UUID;
 
 import static com.datastax.driver.core.DataType.Name.DATE;
@@ -25,8 +26,9 @@ public class Item {
     @CassandraType(type = DATE)
     private final LocalDate endDate;
     private final Boolean auctionFinished;
+    private final Set<String> tags;
 
-    public Item(UUID id, UUID userId, String name, String description, BigDecimal unitPrice, Integer offeredUnits, Integer availableUnits, LocalDate startDate, LocalDate endDate, Boolean auctionFinished) {
+    public Item(UUID id, UUID userId, String name, String description, BigDecimal unitPrice, Integer offeredUnits, Integer availableUnits, LocalDate startDate, LocalDate endDate, Boolean auctionFinished, Set<String> tags) {
         this.id = id;
         this.userId = userId;
         this.name = name;
@@ -37,6 +39,7 @@ public class Item {
         this.startDate = startDate;
         this.endDate = endDate;
         this.auctionFinished = auctionFinished;
+        this.tags = tags;
     }
 
     public UUID getId() {
@@ -77,5 +80,9 @@ public class Item {
 
     public Boolean getAuctionFinished() {
         return auctionFinished;
+    }
+
+    public Set<String> getTags() {
+        return tags;
     }
 }
