@@ -25,10 +25,13 @@ public class CustomizedPurchaseRepositoryImpl implements CustomizedPurchaseRepos
     private static final String ITEM_ID = "itemId";
     private static final String UNIT_PRICE = "unitPrice";
     private static final String QUANTITY = "quantity";
-    private final ReactiveCassandraOperations reactiveCassandraOperations;
 
-    public CustomizedPurchaseRepositoryImpl(ReactiveCassandraOperations reactiveCassandraOperations) {
+    private final ReactiveCassandraOperations reactiveCassandraOperations;
+    private final ItemRepository itemRepository;
+
+    public CustomizedPurchaseRepositoryImpl(ReactiveCassandraOperations reactiveCassandraOperations, ItemRepository itemRepository) {
         this.reactiveCassandraOperations = reactiveCassandraOperations;
+        this.itemRepository = itemRepository;
     }
 
     @Override
@@ -81,6 +84,11 @@ public class CustomizedPurchaseRepositoryImpl implements CustomizedPurchaseRepos
         return reactiveCassandraOperations.getReactiveCqlOperations()
                 .execute(updateItem.toString(), preparedStatement -> {
                     return preparedStatement.bind(purchase.getId(), purchase.getQuantity(), availableUnitsAfter, auctionFinished, item.getId(), availableUnitsBefore);
+                })
+                .doOnSuccess(purchaseComplete -> {
+                    if (purchaseComplete) {
+                        itemRepository.save(item.completePurchase(availableUnitsAfter, auctionFinished));
+                    }
                 });
     }
 }

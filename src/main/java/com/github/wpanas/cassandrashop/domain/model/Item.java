@@ -1,11 +1,13 @@
 package com.github.wpanas.cassandrashop.domain.model;
 
+import com.github.wpanas.cassandrashop.domain.event.ItemPurchasedEvent;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.data.annotation.PersistenceConstructor;
 import org.springframework.data.cassandra.core.mapping.CassandraType;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
+import org.springframework.data.domain.AbstractAggregateRoot;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,7 +16,7 @@ import java.util.*;
 import static com.datastax.driver.core.DataType.Name.DATE;
 
 @Table("master_item")
-public class Item {
+public class Item extends AbstractAggregateRoot<Item> {
     @PrimaryKey
     private final UUID id;
     private final UUID userId;
@@ -97,5 +99,10 @@ public class Item {
 
     public Map<UUID, Integer> getPurchases() {
         return purchases;
+    }
+
+    public Item completePurchase(int availableUnitsAfter, boolean auctionFinished) {
+        registerEvent(new ItemPurchasedEvent(getId(), availableUnitsAfter, auctionFinished));
+        return this;
     }
 }

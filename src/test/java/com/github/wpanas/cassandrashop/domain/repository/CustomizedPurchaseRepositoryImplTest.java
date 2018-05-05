@@ -5,8 +5,11 @@ import com.github.wpanas.cassandrashop.domain.model.Item;
 import com.github.wpanas.cassandrashop.domain.model.Purchase;
 import com.github.wpanas.cassandrashop.domain.model.PurchaseStatus;
 import com.github.wpanas.cassandrashop.domain.model.UserPurchaseKey;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -34,6 +37,9 @@ public class CustomizedPurchaseRepositoryImplTest {
 
     @Autowired
     private UserPurchaseRepository userPurchaseRepository;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Test
     public void savePurchase() {
